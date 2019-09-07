@@ -848,7 +848,8 @@ class CheckpointSuite extends TestSuiteBase with DStreamCheckpointTester
   }
 
   test("SPARK-28912: Fix MatchError in getCheckpointFiles") {
-    withTempDir { tempDir =>
+    val tempDir = Utils.createTempDir()
+    try {
       val fs = FileSystem.get(tempDir.toURI, new Configuration)
       val checkpointDir = tempDir.getAbsolutePath + "/checkpoint-01"
 
@@ -861,6 +862,8 @@ class CheckpointSuite extends TestSuiteBase with DStreamCheckpointTester
       // Ignore directories whose names match.
       fs.mkdirs(new Path(checkpointDir, "checkpoint-1000000000"))
       assert(Checkpoint.getCheckpointFiles(checkpointDir, Some(fs)).length === 0)
+    } finally {
+      Utils.deleteRecursively(tempDir)
     }
   }
 
